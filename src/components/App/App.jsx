@@ -4,6 +4,7 @@ import Searchbar from 'components/Searchbar';
 import ImageGallery from 'components/ImageGallery';
 import Button from 'components/Button';
 import Modal from 'components/Modal';
+import Loader from 'components/Loader';
 import { api } from 'API';
 
 class App extends Component {
@@ -27,7 +28,6 @@ class App extends Component {
   SearchImages = ({ query }) => {
     const isQueryChanged = query !== api.queryToFetch;
     if (!isQueryChanged) return;
-
     api.queryToFetch = query;
     api.pageToFetch = 1;
     this.setState({ items: [] });
@@ -87,6 +87,7 @@ class App extends Component {
           items={items}
           query={api.queryToFetch}
         />
+        {loading && <Loader />}
         {!isloadMoreHidden && <Button loadMore={loadMore}>Load more</Button>}
         {isModalOpen && (
           <Modal
