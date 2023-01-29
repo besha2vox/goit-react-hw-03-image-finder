@@ -7,6 +7,7 @@ import {
   SearchFormButtonLabel,
   SearchFormInput,
 } from './Searchbar.styled';
+import { ReactComponent as SearchIcon } from 'images/search.svg';
 
 class Searchbar extends Component {
   state = {
@@ -43,7 +44,8 @@ class Searchbar extends Component {
       <Header>
         <SearchForm onSubmit={handleSubmit}>
           <SearchFormButton>
-            <SearchFormButtonLabel>Search</SearchFormButtonLabel>
+            <SearchIcon />
+            <SearchFormButtonLabel />
           </SearchFormButton>
 
           <SearchFormInput

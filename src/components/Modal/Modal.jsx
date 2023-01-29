@@ -1,10 +1,17 @@
 import { Component } from 'react';
 import { Overlay, ModalWindow } from './Modal.styled';
 import { createPortal } from 'react-dom';
+import PropTypes from 'prop-types';
 
 const modalRoot = document.getElementById('modal-root');
 
 class Modal extends Component {
+  static propTypes = {
+    onCloseModal: PropTypes.func.isRequired,
+    imgUrl: PropTypes.string.isRequired,
+    discription: PropTypes.string.isRequired,
+  };
+
   componentDidMount() {
     window.addEventListener('keyup', this.handlerKeyupEscape);
   }
