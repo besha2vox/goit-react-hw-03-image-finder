@@ -11,6 +11,7 @@ class App extends Component {
     items: [],
     totalHits: null,
     isModalOpen: false,
+    largeImage: '',
     page: api.pageToFetch,
     error: null,
     loading: false,
@@ -19,11 +20,14 @@ class App extends Component {
   componentDidUpdate(prevProps, prevState) {
     const { search, page } = this.state;
     if (prevState.search !== search || prevState.page !== page) {
-      this.fetchPosts();
+      this.fetchImages();
     }
   }
 
   SearchImages = ({ query }) => {
+    const isQueryChanged = query !== api.queryToFetch;
+    if (!isQueryChanged) return;
+
     api.queryToFetch = query;
     api.pageToFetch = 1;
     this.setState({ items: [] });
@@ -54,18 +58,43 @@ class App extends Component {
     this.fetchImages();
   };
 
+  openModal = id => {
+    const imgUrl = this.state.items.find(item => item.id === id).largeImageURL;
+    this.setState({
+      largeImage: imgUrl,
+      isModalOpen: true,
+    });
+  };
+
+  onCloseModal = () => {
+    this.setState({
+      largeImage: '',
+      isModalOpen: false,
+    });
+  };
+
   render() {
-    const { isModalOpen, items, totalHits, loading } = this.state;
-    const { SearchImages, loadMore } = this;
+    const { isModalOpen, items, totalHits, loading, largeImage } = this.state;
+    const { SearchImages, loadMore, openModal, onCloseModal } = this;
     const isloadMoreHidden =
       (totalHits <= items.length && !loading) || items.length < 1;
-    console.log('isloadMoreHidden', isloadMoreHidden);
+
     return (
       <AppContainer>
         <Searchbar onSubmit={SearchImages} />
-        <ImageGallery items={items} query={api.queryToFetch} />
+        <ImageGallery
+          openModal={openModal}
+          items={items}
+          query={api.queryToFetch}
+        />
         {!isloadMoreHidden && <Button loadMore={loadMore}>Load more</Button>}
-        {isModalOpen && <Modal />}
+        {isModalOpen && (
+          <Modal
+            onCloseModal={onCloseModal}
+            imgUrl={largeImage}
+            discription={api.queryToFetch}
+          />
+        )}
       </AppContainer>
     );
   }
