@@ -15,7 +15,6 @@ const App = () => {
   const [largeImage, setLargeImage] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [query, setQuery] = useState('');
   const [message, setMessage] = useState('Enter the query to search!');
 
@@ -42,7 +41,7 @@ const App = () => {
           setTotalCount(totalHits);
         }
       } catch (err) {
-        setError(err.message);
+        console.log(err.message);
       } finally {
         setLoading(false);
       }
