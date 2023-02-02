@@ -1,104 +1,105 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { AppContainer } from './App.styled';
 import Searchbar from 'components/Searchbar';
 import ImageGallery from 'components/ImageGallery';
 import Button from 'components/Button';
 import Modal from 'components/Modal';
 import Loader from 'components/Loader';
-import { api } from 'API';
+import Message from 'components/Message';
+import fetchImages from 'API';
 
-class App extends Component {
-  state = {
-    items: [],
-    totalHits: null,
-    isModalOpen: false,
-    largeImage: '',
-    page: api.pageToFetch,
-    error: null,
-    loading: false,
-  };
+const App = () => {
+  const [items, setItems] = useState([]);
+  const [totalCount, setTotalCount] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [largeImage, setLargeImage] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [query, setQuery] = useState('');
+  const [message, setMessage] = useState('Enter the query to search!');
 
-  componentDidUpdate(prevProps, prevState) {
-    const { search, page } = this.state;
-    if (prevState.search !== search || prevState.page !== page) {
-      this.fetchImages();
-    }
-  }
+  useEffect(() => {
+    const getImages = async () => {
+      try {
+        setLoading(true);
 
-  SearchImages = ({ query }) => {
-    const isQueryChanged = query !== api.queryToFetch;
+        if (!query) return;
+        setMessage('');
+
+        {
+          const {
+            data: { hits, totalHits },
+          } = await fetchImages(query, page);
+
+          if (hits.length < 1) {
+            setMessage(
+              'The search result is incorrect. Please enter quary and try again.'
+            );
+            return;
+          }
+          setItems(prevItems => [...prevItems, ...hits]);
+          setTotalCount(totalHits);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getImages();
+  }, [page, query]);
+
+  const SearchImages = queryToSearch => {
+    const isQueryChanged = queryToSearch !== query;
     if (!isQueryChanged) return;
-    api.queryToFetch = query;
-    api.pageToFetch = 1;
-    this.setState({ items: [] });
-    this.fetchImages();
+    setQuery(queryToSearch);
+    setPage(1);
+    setItems([]);
   };
 
-  async fetchImages() {
-    try {
-      this.setState({ loading: true });
-
-      const {
-        data: { hits, totalHits },
-      } = await api.fetch();
-
-      this.setState(({ items }) => ({
-        items: [...items, ...hits],
-        totalHits: totalHits,
-      }));
-    } catch (error) {
-      this.setState({ error: error.message });
-    } finally {
-      this.setState({ loading: false });
-    }
-  }
-
-  loadMore = () => {
-    api.incrementPage();
-    this.fetchImages();
+  const loadMore = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  openModal = id => {
-    const imgUrl = this.state.items.find(item => item.id === id).largeImageURL;
-    this.setState({
-      largeImage: imgUrl,
-      isModalOpen: true,
-    });
+  const openModal = id => {
+    const imgUrl = items.find(item => item.id === id).largeImageURL;
+    setLargeImage(imgUrl);
+    setIsModalOpen(true);
   };
 
-  onCloseModal = () => {
-    this.setState({
-      largeImage: '',
-      isModalOpen: false,
-    });
+  const onCloseModal = () => {
+    setLargeImage('');
+    setIsModalOpen(false);
   };
 
-  render() {
-    const { isModalOpen, items, totalHits, loading, largeImage } = this.state;
-    const { SearchImages, loadMore, openModal, onCloseModal } = this;
-    const isloadMoreHidden =
-      (totalHits <= items.length && !loading) || items.length < 1;
+  const isloadMoreHidden =
+    totalCount <= items.length || loading || items.length < 1;
 
-    return (
-      <AppContainer>
-        <Searchbar onSubmit={SearchImages} />
-        <ImageGallery
-          openModal={openModal}
-          items={items}
-          query={api.queryToFetch}
+  console.log(items.length);
+
+  return (
+    <AppContainer>
+      <Searchbar onSubmit={SearchImages} />
+
+      {items.length < 1 ? (
+        <Message message={message} />
+      ) : (
+        <ImageGallery openModal={openModal} items={items} query={query} />
+      )}
+
+      {loading && <Loader />}
+      {!isloadMoreHidden && <Button loadMore={loadMore}>Load more</Button>}
+      {isModalOpen && (
+        <Modal
+          onCloseModal={onCloseModal}
+          imgUrl={largeImage}
+          discription={query}
         />
-        {loading && <Loader />}
-        {!isloadMoreHidden && <Button loadMore={loadMore}>Load more</Button>}
-        {isModalOpen && (
-          <Modal
-            onCloseModal={onCloseModal}
-            imgUrl={largeImage}
-            discription={api.queryToFetch}
-          />
-        )}
-      </AppContainer>
-    );
-  }
-}
+      )}
+    </AppContainer>
+  );
+};
 
 export default App;
