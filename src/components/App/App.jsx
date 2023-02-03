@@ -76,8 +76,6 @@ const App = () => {
   const isloadMoreHidden =
     totalCount <= items.length || loading || items.length < 1;
 
-  console.log(items.length);
-
   return (
     <AppContainer>
       <Searchbar onSubmit={SearchImages} />
