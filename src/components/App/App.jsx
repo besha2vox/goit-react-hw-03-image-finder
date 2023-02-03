@@ -37,7 +37,14 @@ const App = () => {
             );
             return;
           }
-          setItems(prevItems => [...prevItems, ...hits]);
+          setItems(prevItems => [
+            ...prevItems,
+            ...hits.map(({ largeImageURL, webformatURL, id }) => ({
+              largeImageURL,
+              webformatURL,
+              id,
+            })),
+          ]);
           setTotalCount(totalHits);
         }
       } catch (err) {
